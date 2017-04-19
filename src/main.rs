@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate serde as _serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate libc;
 extern crate getopts;
 extern crate mio;

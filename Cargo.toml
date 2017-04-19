@@ -4,6 +4,8 @@ version = "0.0.1"
 authors = ["Chang Lan <clan@eecs.berkeley.edu>"]
 
 [dependencies]
+serde = "0.9"
+serde_derive = "0.9.*"
 libc = "*"
 getopts = "*"
 mio = "*"

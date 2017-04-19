@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use serde_derive;
 use std::net::{SocketAddr, IpAddr, Ipv4Addr, UdpSocket};
 use std::os::unix::io::AsRawFd;
 use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::io::{Write, Read};
 use mio;
 use dns_lookup;
-use bincode::SizeLimit;
-use bincode::rustc_serialize::{encode, decode};
+use bincode::Infinite;
+use bincode::serialize as encode;
+use bincode::deserialize as decode;
 use device;
 use utils;
 use snap;
@@ -31,7 +33,7 @@ pub static INTERRUPTED: AtomicBool = ATOMIC_BOOL_INIT;
 type Id = u8;
 type Token = u64;
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 enum Message {
     Request,
     Response { id: Id, token: Token },
@@ -64,7 +66,7 @@ fn create_tun_attempt() -> device::Tun {
 
 fn initiate(socket: &UdpSocket, addr: &SocketAddr) -> Result<(Id, Token), String> {
     let req_msg = Message::Request;
-    let encoded_req_msg: Vec<u8> = try!(encode(&req_msg, SizeLimit::Infinite)
+    let encoded_req_msg: Vec<u8> = try!(encode(&req_msg, Infinite)
         .map_err(|e| e.to_string()));
 
     let mut remaining_len = encoded_req_msg.len();
@@ -176,7 +178,7 @@ pub fn connect(host: &str, port: u16, default: bool) {
                         token: token,
                         data: encoder.compress_vec(data).unwrap(),
                     };
-                    let encoded_msg = encode(&msg, SizeLimit::Infinite).unwrap();
+                    let encoded_msg = encode(&msg, Infinite).unwrap();
                     let data_len = encoded_msg.len();
                     let mut sent_len = 0;
                     while sent_len < data_len {
@@ -258,7 +260,7 @@ pub fn serve(port: u16) {
                                 id: client_id,
                                 token: client_token,
                             };
-                            let encoded_reply = encode(&reply, SizeLimit::Infinite).unwrap();
+                            let encoded_reply = encode(&reply, Infinite).unwrap();
                             let data_len = encoded_reply.len();
                             let mut sent_len = 0;
                             while sent_len < data_len {
@@ -310,7 +312,7 @@ pub fn serve(port: u16) {
                                 token: token,
                                 data: encoder.compress_vec(data).unwrap(),
                             };
-                            let encoded_msg = encode(&msg, SizeLimit::Infinite).unwrap();
+                            let encoded_msg = encode(&msg, Infinite).unwrap();
                             sockfd.send_to(&encoded_msg, &addr).unwrap().unwrap();
                         }
                     }
