@@ -43,12 +43,16 @@ interface name on your server:
 
 ```
 $ sudo iptables -t nat -A POSTROUTING -s 10.10.10.0/24 -o eth0 -j MASQUERADE
+$ sudo  iptables -A FORWARD -i eth0 -o tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+$ sudo  iptables -A FORWARD -s 10.10.10.0/24 -o eth0 -j ACCEPT
+
 ```
 
 To run `kytan` in server mode and listen on UDP port `9527`:
 
 ```
 $ sudo ./kytan -m s -p 9527
+
 ```
 
 #### Client Mode
